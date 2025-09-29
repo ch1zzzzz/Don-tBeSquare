@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Spiel</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="big flex-center">
+        <div class="top-bar flex-space-between row">
+            <div id="levelLabel">Start</div>
+            <div id="timeLabel">Time has no meaning here</div>
+        </div>
+        <div>
+            <div class="start flex-center" id="start-box">
+                <div class="button" id="start-button">Start</div>
+            </div>
+            <div id="game-end" class="flex-center">
+                <div id="game-over" class="column">
+                    <div>Game Over</div>
+                    <div class="text">Press SPACE to restart</div>
+                    <div class="text">Press ESC to go back to the menue</div>
+                </div>
+                <div id="game-won" class="column">
+                    <div>Victory</div>
+                    <div class="text">Press SPACE to go back to the menue</div>
+                </div>
+            </div>
+            <canvas id="screen" width="600" height="450"></canvas>
+        </div>
+        <div class="bottom-bar flex-space-between row">
+            <div id="ticksPerSecondLabel">Tps: 0</div>
+            <div id="scoreLabel"></div>
+        </div>
+    </div>
+    <script src="util.js"></script>
+    <script src="levels.js"></script>
+    <script src="spawnFunctions.js"></script>
+    <script src="bullets.js"></script>
+    <script src="input.js"></script>
+    <script src="gameLogic.js"></script>
+    <script>
+        const canvas = document.getElementById('screen')
+        const context = canvas.getContext('2d')
+
+        const gameEnd = document.getElementById('game-end')
+        const gameOver = document.getElementById('game-over')
+        const gameWon = document.getElementById('game-won')
+
+        const tpsText = document.getElementById('ticksPerSecondLabel')
+
+        const levelLabel = document.getElementById('levelLabel')
+        const timeLabel = document.getElementById('timeLabel')
+        const scoreLabel = document.getElementById('scoreLabel')
+
+        function clearScreen(instance) {
+            context.fillStyle = "#1d201e"
+            context.fillRect(0, 0, 600, 450)
+        }
+
+        function drawUI(instance) {
+            context.fillStyle = '#84f777'
+            context.fillRect(10, 10, instance.health, 10)
+
+            context.fillStyle = '#f5f187'
+            context.fillRect(120, 10, Math.min(Math.floor(instance.bulletAmmoCount) * 100 / instance.currentBulletSettings.maxAmmo, 100), 10)
+        }
+
+        function displayText() {
+            scoreText.textContent = Math.floor(tickCounter / tps) + "s"
+        }
+
+        let interval = 0
+        let currentLevelName = "Menue"
+        let currentGameState = 0
+
+        let highScore = 0
+
+
+        function start(level) {
+            document.getElementById('start-box').style.display = 'none';
+            gameEnd.style.display = 'none'
+
+            const startTime = performance.now()
+
+            const game = createGameInstance(level, context, 0, false)
+
+            let ticksExecuted = 0
+
+            interval = setInterval(() => {
+                const timeSinceStart = performance.now() - startTime
+                const ticksDue = timeSinceStart / 20
+
+                if (ticksExecuted < ticksDue) {
+                    loop(game)
+                    ticksExecuted += 1
+                    timeLabel.textContent = game.level.endSeconds - Math.floor(ticksExecuted/tps)
+
+                    if (currentLevelName == "Menue") {
+                        scoreLabel.textContent = ""
+                    } else if (game.score > highScore) {
+                        scoreLabel.textContent = "New Highscore: " + game.score
+                    } else {
+                        scoreLabel.textContent = "Score: " + game.score + " Highscore: " + highScore
+                    }
+                }
+            }, 0)
+        }
+
+        // variables for ticks per second
+        let timeLastFrame = 0
+        let timeSum = 0
+        let tickCountForAverage = 0
+
+        function loop(game) {
+            const state = tick(game)
+
+            currentGameState = state
+
+            if (state != 0) {
+                clearScreen()
+                clearInterval(interval)
+                gameEnd.style.display = 'flex'
+
+                if (game.score > highScore) {
+                    localStorage.setItem("Score: "+currentLevelName, game.score)
+                    console.log("Set highscore " + currentLevelName + " " + game.score)
+                }
+
+                if (state < 0) {
+                    gameOver.style.display = 'flex'
+                    gameWon.style.display = 'none'
+                } else {
+                    gameOver.style.display = 'none'
+                    gameWon.style.display = 'flex'
+                    setLevelBeat(currentLevelName)
+                }
+            }
+
+            if (game.switchLevel) {
+                loadLevel(game.switchLevel)
+            }
+
+            const timeThisFrame = window.performance.now()
+            const millisThisFrame = timeThisFrame - timeLastFrame
+            timeSum += millisThisFrame
+            tickCountForAverage += 1
+            if (tickCountForAverage >= 20) {
+                const averageMillis = timeSum / tickCountForAverage
+                tpsText.textContent = "TPS: " + Math.round(1000 / averageMillis) + "/50"
+
+                timeSum = 0
+                tickCountForAverage = 0
+            }
+            timeLastFrame = timeThisFrame
+        }
+
+        function loadLevel(name) {
+            const newLevel = getLevel(name)
+
+            if (newLevel) {
+                clearInterval(interval)
+                currentLevelName = name
+                currentGameState = 0
+                highScore = localStorage.getItem("Score: "+currentLevelName)
+
+                if (!Number.isFinite(Number.parseInt(highScore))) {
+                    console.log("Invalid Highscore Value")
+                    console.log(highScore)
+                    highScore = 0
+                }
+
+                start(newLevel)
+            }
+        }
+
+        document.getElementById('start-button').addEventListener('click', () => {
+            start(levelSelectLevel())
+        });
+
+        window.addEventListener('keydown', function (e) {
+            if(e.keyCode == 32) {
+                if (currentGameState > 0) {
+                    currentLevelName = "Menue"
+                    levelLabel.textContent = "Menue"
+                    start(levelSelectLevel())
+                }
+                
+                if (currentGameState < 0) {
+                    levelLabel.textContent = "Level " + currentLevelName
+                    loadLevel(currentLevelName)
+                }
+            }
+
+            if(e.keyCode == 27) {
+                levelLabel.textContent = "Menue"
+                currentLevelName = "Menue"
+                clearInterval(interval)
+                start(levelSelectLevel())
+            }
+        })
+
+    </script>
+</body>
+
+</html>

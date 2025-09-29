@@ -1,0 +1,31 @@
+Spaceinvader inspiriertes Spieleprojekt mit reinem HTML, CSS und JS hinzugefügt.
+Erstes Level erstellt.
+Datenbasiertes Levelsystem erstellt um das erstellen von Leveln einfacher zu machen.
+Unterstützung für mehrere Waffen, hinzugefügt.
+Gegner der die Waffe wechselt, wenn er besiegt wird, hinzugefügt.
+Zweites Level erstellt.
+Aufteilung des Quellcodes auf mehrere Dateien.
+Unterstützung für verschiedene Bildschirmgrößen verbessert.
+Bildrate auf Firefox von 30 auf gewollte 50 verbessert.
+
+Unterstützung für temporäre Effekte hinzugefügt.
+Gegner der beim Tod explodiert hinzugefügt.
+Drittes Level erstellt.
+Gegner den Spieler heilt, wenn er besiegt wird, hinzugefügt.
+Unterstützung für Waffenupgrades die nach dem Wechsel übertragen werden, hinzugefügt.
+Gegner der den Spieler ein Waffenupgrade gibt, wenn er besiegt wird, hinzugefügt.
+Gegner mit einem Schild hinzugefügt.
+Viertes Level erstellt.
+Verbesserung der Standardwaffe um mit den Alternativen mitzuhalten.
+Entfernen des zweiten und vierten Levels mangels interessanter Herausforderungen.
+(Das dritte ist jetzt das zweite)
+
+Neues Bewegungsmuster (Sinuskurve) hinzugefügt.
+Gegner der beim Besiegen das Level wechselt hinzugefügt.
+Hauptmenü mit stationären Gegnern die das Level wechseln hinzugefügt.
+Visuelle Darstellung der Steuerung ins Hauptmenü hinzugefügt.
+Neues "drittes" Level hinzugefügt.
+Neues "viertes" Level hinzugefügt.
+Visuelle Effekte für das Zerstören von Gegnern hinzugefügt.
+Punktesystem hinzugefügt.
+
