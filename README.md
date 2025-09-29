@@ -1,1 +1,1 @@
-"# Don't be Square" 
+# Don't be Square
