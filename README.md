@@ -1,6 +1,6 @@
 # Don't be Square
 
-A browser game, born out of boredom and a challengen for myself to see how far I could get without a game engine or sprites.
+A browser game, born out of boredom and a challenge for myself to see how far I could get without a game engine or sprites.
 <br><br>
 Someone told me it reminded them of some ancient game called gradius. ( :
 <br><br>
