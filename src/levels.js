@@ -4,7 +4,8 @@ const levels = {
     3: barrierIntroLevel(),
     4: waveMadnessLevel(),
     5: spawnPatterns(),
-    '!!': bossLevel()
+    '!!': bossLevel(),
+    'U': upgradeIntroLevel()
 }
 
 function getLevel(level) {
@@ -158,7 +159,28 @@ function levelSelectLevel() {
                             x: 330,
                             y: 225
                         },
-                        requiredLevelsBeat: [] //['5']
+                        requiredLevelsBeat: ['5'] //['5']
+                    }
+                },
+                {
+                    spawnFunction: 'levelUnlock',
+                    spawnData: {
+                        enimie: {
+                            type: 'wave',
+                            data: {
+                                minAmplitude: 2,
+                                maxAmplitude: 3,
+                                frequenzyPerSecond: 0.5,
+                                minSpeed: 0,
+                                maxSpeed: 0,
+                                effects: ['switch-level:U']
+                            }
+                        },
+                        pos: {
+                            x: 580,
+                            y: 430
+                        },
+                        requiredLevelsBeat: ['!!']
                     }
                 }
             ],
@@ -2515,18 +2537,295 @@ function spawnPatterns() {
 // TODO Screenshake
 
 function bossLevel() {
+    const normalLeft = {
+        spawnFunction: 'random',
+        spawnData: {
+            enimies: [
+                {
+                    type: 'goLeft',
+                    data: {
+                        minSpeed: 3,
+                        maxSpeed: 5,
+                        effects: ['hurt']
+                    }
+                }
+            ],
+            areas: [
+                {
+                    minX: 610, maxX: 610, minY: 10, maxY: 440
+                }
+            ]
+        },
+        minCount: 1,
+        maxCount: 4,
+        minHP: 40,
+        maxHP: 100
+    }
+
+    const normalRight = {
+        spawnFunction: 'random',
+        spawnData: {
+            enimies: [
+                {
+                    type: 'goLeft',
+                    data: {
+                        minSpeed: -3,
+                        maxSpeed: -5,
+                        effects: ['hurt']
+                    }
+                }
+            ],
+            areas: [
+                {
+                    minX: -10, maxX: -10, minY: 10, maxY: 440
+                }
+            ]
+        },
+        minCount: 1,
+        maxCount: 4,
+        minHP: 20,
+        maxHP: 80
+    }
+
+    const randomEnimieLeft = {
+        spawnFunction: 'random',
+        spawnData: {
+            enimies: [
+                {
+                    type: 'goLeft',
+                    data: {
+                        minSpeed: 3,
+                        maxSpeed: 5,
+                        effects: ['hurt']
+                    }
+                },
+                {
+                    type: 'goLeft',
+                    data: {
+                        minSpeed: 3,
+                        maxSpeed: 5,
+                        effects: ['shield3']
+                    }
+                },
+                {
+                    type: 'goLeft',
+                    data: {
+                        minSpeed: 3,
+                        maxSpeed: 5,
+                        effects: ['shield2']
+                    }
+                }
+            ],
+            areas: [
+                {
+                    minX: 610, maxX: 610, minY: 10, maxY: 440
+                }
+            ]
+        },
+        minCount: 1,
+        maxCount: 1,
+        minHP: 0,
+        maxHP: 100
+    }
+
+    const explosionBois = {
+        spawnFunction: 'random',
+        spawnData: {
+            enimies: [
+                {
+                    type: 'goLeft',
+                    data: {
+                        minSpeed: 3,
+                        maxSpeed: 5,
+                        effects: ['explosive']
+                    }
+                }
+            ],
+            areas: [
+                {
+                    minX: 610, maxX: 610, minY: 10, maxY: 440
+                }
+            ]
+        },
+        minCount: 3,
+        maxCount: 10,
+        minHP: 0,
+        maxHP: 50
+    }
+
+    const criticalBois = {
+        spawnFunction: 'random',
+        spawnData: {
+            enimies: [
+                {
+                    type: 'goLeft',
+                    data: {
+                        minSpeed: 3,
+                        maxSpeed: 5,
+                        effects: ['hurt', 'critical']
+                    }
+                }
+            ],
+            areas: [
+                {
+                    minX: 610, maxX: 610, minY: 10, maxY: 440
+                }
+            ]
+        },
+        minCount: 1,
+        maxCount: 1,
+        minHP: 0,
+        maxHP: 50
+    }
+
+    const twoRedCritical = {
+        type: 'pattern',
+        data: [
+            {
+                x: 0,
+                y: 0,
+                enimie: {
+                    type: 'goLeft',
+                    data: {
+                        minSpeed: 5,
+                        maxSpeed: 5,
+                        effects: ['hurt']
+                    }
+                }
+            },
+            {
+                x: 50,
+                y: 0,
+                enimie: {
+                    type: 'goLeft',
+                    data: {
+                        minSpeed: 5,
+                        maxSpeed: 5,
+                        effects: ['hurt']
+                    }
+                }
+            },
+            {
+                x: 100,
+                y: 0,
+                enimie: {
+                    type: 'goLeft',
+                    data: {
+                        minSpeed: 5,
+                        maxSpeed: 5,
+                        effects: ['hurt', 'critical']
+                    }
+                }
+            }
+        ]
+    }
+
+    const twoArmoredCritical = {
+        type: 'pattern',
+        data: [
+            {
+                x: 0,
+                y: 0,
+                enimie: {
+                    type: 'goLeft',
+                    data: {
+                        minSpeed: 3,
+                        maxSpeed: 3,
+                        effects: ['shield3']
+                    }
+                }
+            },
+            {
+                x: 50,
+                y: 0,
+                enimie: {
+                    type: 'goLeft',
+                    data: {
+                        minSpeed: 3,
+                        maxSpeed: 3,
+                        effects: ['shield3']
+                    }
+                }
+            },
+            {
+                x: 100,
+                y: 0,
+                enimie: {
+                    type: 'goLeft',
+                    data: {
+                        minSpeed: 3,
+                        maxSpeed: 3,
+                        effects: ['hurt', 'critical']
+                    }
+                }
+            }
+        ]
+    }
+
+    const patternBois = {
+        spawnFunction: 'random',
+        spawnData: {
+            enimies: [
+                twoArmoredCritical,
+                twoRedCritical
+            ],
+            areas: [
+                {
+                    minX: 610, maxX: 610, minY: 10, maxY: 440
+                }
+            ]
+        },
+        minCount: 1,
+        maxCount: 1,
+        minHP: 0,
+        maxHP: 30
+    }
+
+    const wavyBois = {
+        spawnFunction: 'random',
+        spawnData: {
+            enimies: [
+                {
+                    type: 'wave',
+                    data: {
+                        minSpeed: -5,
+                        maxSpeed: -7,
+                        frequenzyPerSecond: 1,
+                        minAmplitude: 10,
+                        maxAmplitude: 10,
+                        effects: ['shield3']
+                    }
+                }
+            ],
+            areas: [
+                {
+                    minX: -10, maxX: -10, minY: 10, maxY: 440
+                }
+            ]
+        },
+        minCount: 1,
+        maxCount: 3,
+        minHP: 30,
+        maxHP: 70
+    }
+
     return {
         isBossLevel: true,
         bossHP: 100,
-        // BOSS Attacks
-        // Dashes Horizontal or Vertical and Spawns random enimies
-        // Shoots enimies at the player
-        // Spawns formation, then follows the player
-        dashSpawnPatternSpawns: {
-            0: [],
-            10: []
-        },
-        screamSpawns: {},
+        // Boss Death Animation
+        // Player Death Animation
+        // On hit red effect
+        // Sound effects
+        // Boss Idle Animation
+        // Boss Wakeup Animation
+        // Sprites Probieren
+        dashSpawnPatternSpawns: [
+            normalLeft,
+            normalRight,
+            randomEnimieLeft,
+            explosionBois,
+            wavyBois
+        ],
         shootSpawns: [
             {
                 enimie: {
@@ -2537,7 +2836,6 @@ function bossLevel() {
                         effects: ['hurt']
                     }
                 },
-                // Note: Can move between volleys, not between shots
                 spawnsPerSecond: 2,
                 count: 3,
                 moveWhileShooting: true,
@@ -2553,7 +2851,6 @@ function bossLevel() {
                         effects: ['hurt']
                     }
                 },
-                // Note: Can move between volleys, not between shots
                 spawnsPerSecond: 5,
                 count: 5,
                 moveWhileShooting: true,
@@ -2569,7 +2866,6 @@ function bossLevel() {
                         effects: ['hurt']
                     }
                 },
-                // Note: Can move between volleys, not between shots
                 spawnsPerSecond: 5,
                 count: 5,
                 moveWhileShooting: false,

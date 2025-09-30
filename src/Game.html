@@ -15,9 +15,6 @@
             <div id="timeLabel">Time has no meaning here</div>
         </div>
         <div>
-            <div class="start flex-center" id="start-box">
-                <div class="button" id="start-button">Start</div>
-            </div>
             <div id="game-end" class="flex-center">
                 <div id="game-over" class="column">
                     <div>Game Over</div>
@@ -30,6 +27,9 @@
                 </div>
             </div>
             <canvas id="screen" width="600" height="450"></canvas>
+        </div>
+        <div class="start flex-center" id="start-box" style="position:absolute">
+            <div class="button" id="start-button">Start</div>
         </div>
         <div class="bottom-bar flex-space-between row">
             <div id="ticksPerSecondLabel">Tps: 0</div>
@@ -94,10 +94,27 @@
                 const timeSinceStart = performance.now() - startTime
                 const ticksDue = timeSinceStart / 20
 
+                if (ticksDue - ticksExecuted > 10) {
+                    ticksExecuted = ticksDue - 10
+                }
+
                 if (ticksExecuted < ticksDue) {
+                    let x = 0
+                    let y = 0
+
+                    if (game.screenShakeVerticalTick > 0) {
+                        x = Math.sin(timeSinceStart / 80) * 10
+                    }
+
+                    if (game.screenShakeHorizontalTick > 0) {
+                        y = Math.sin(timeSinceStart / 80) * 10
+                    }
+
+                    canvas.style.transform = 'translate(' + x + 'px,' + y + 'px)'
+
                     loop(game)
                     ticksExecuted += 1
-                    timeLabel.textContent = game.level.endSeconds - Math.floor(ticksExecuted/tps)
+                    timeLabel.textContent = game.level.endSeconds - Math.floor(ticksExecuted / tps)
 
                     if (currentLevelName == "Menue") {
                         scoreLabel.textContent = ""
@@ -126,7 +143,7 @@
                 gameEnd.style.display = 'flex'
 
                 if (game.score > highScore) {
-                    localStorage.setItem("Score: "+currentLevelName, game.score)
+                    localStorage.setItem("Score: " + currentLevelName, game.score)
                     console.log("Set highscore " + currentLevelName + " " + game.score)
                 }
 
@@ -138,6 +155,8 @@
                     gameWon.style.display = 'flex'
                     setLevelBeat(currentLevelName)
                 }
+
+                canvas.style.removeProperty('transform')
             }
 
             if (game.switchLevel) {
@@ -165,7 +184,7 @@
                 clearInterval(interval)
                 currentLevelName = name
                 currentGameState = 0
-                highScore = localStorage.getItem("Score: "+currentLevelName)
+                highScore = localStorage.getItem("Score: " + currentLevelName)
 
                 if (!Number.isFinite(Number.parseInt(highScore))) {
                     console.log("Invalid Highscore Value")
@@ -182,20 +201,20 @@
         });
 
         window.addEventListener('keydown', function (e) {
-            if(e.keyCode == 32) {
+            if (e.keyCode == 32) {
                 if (currentGameState > 0) {
                     currentLevelName = "Menue"
                     levelLabel.textContent = "Menue"
                     start(levelSelectLevel())
                 }
-                
+
                 if (currentGameState < 0) {
                     levelLabel.textContent = "Level " + currentLevelName
                     loadLevel(currentLevelName)
                 }
             }
 
-            if(e.keyCode == 27) {
+            if (e.keyCode == 27) {
                 levelLabel.textContent = "Menue"
                 currentLevelName = "Menue"
                 clearInterval(interval)

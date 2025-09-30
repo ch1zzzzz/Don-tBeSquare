@@ -14,6 +14,10 @@ function createGameInstance(level, context, startSecond = 0, hardcoreMode = fals
         currentBulletSettings: getDefaultRevolver(),
         currentBaseBulletSettings: getDefaultRevolver(),
 
+        screenShakeVerticalTick: 0,
+        screenShakeHorizontalTick: 0,
+        bossShakeTick: 0,
+
         weaponUpgrades: {
             pierce: 0,
             ammoRegenPerSecond: 0,
@@ -1055,6 +1059,21 @@ function moveBossTowardsPoint(instance, x, y, speed) {
     return false
 }
 
+function spawnBounceAlerted(instance) {
+    const hp = bossRelativeHealth(instance)
+    const spawner = pickRandomDashAwakeSpawner(instance.level, hp)
+
+    if (!spawner) {
+        return
+    }
+
+    const count = range(spawner.minCount, spawner.maxCount)
+
+    for (let i = 0; i < count; i++) {
+        pushEnimieMaybeArray(instance, spawnEnimiesWithFunction(spawner.spawnFunction, spawner.spawnData))
+    }
+}
+
 function bossBounceOfWalls(instance) {
     if (instance.bossX < 0) {
         instance.bossX = 0
@@ -1064,6 +1083,10 @@ function bossBounceOfWalls(instance) {
             x: -instance.currentBossActivity.x,
             y: instance.currentBossActivity.y
         }
+
+        spawnBounceAlerted(instance)
+
+        instance.screenShakeHorizontalTick = 20
     }
 
     if (instance.bossX > 600) {
@@ -1074,6 +1097,10 @@ function bossBounceOfWalls(instance) {
             x: -instance.currentBossActivity.x,
             y: instance.currentBossActivity.y
         }
+
+        spawnBounceAlerted(instance)
+
+        instance.screenShakeHorizontalTick = 20
     }
 
     if (instance.bossY < 0) {
@@ -1084,6 +1111,10 @@ function bossBounceOfWalls(instance) {
             x: instance.currentBossActivity.x,
             y: -instance.currentBossActivity.y
         }
+
+        spawnBounceAlerted(instance)
+
+        instance.screenShakeVerticalTick = 20
     }
 
     if (instance.bossY > 450) {
@@ -1094,6 +1125,10 @@ function bossBounceOfWalls(instance) {
             x: instance.currentBossActivity.x,
             y: -instance.currentBossActivity.y
         }
+
+        spawnBounceAlerted(instance)
+
+        instance.screenShakeVerticalTick = 20
     }
 }
 
@@ -1101,6 +1136,20 @@ function pickRandomShootPattern(level, hp) {
     const bossHP = hp * level.bossHP
     
     const patterns = level.shootSpawns.filter(pattern => {
+        return bossHP >= pattern.minHP && bossHP <= pattern.maxHP
+    })
+
+    if (patterns.length == 0) {
+        return null
+    }
+
+    return pickRandomArrayElement(patterns)
+}
+
+function pickRandomDashAwakeSpawner(level, hp) {
+    const bossHP = hp * level.bossHP
+    
+    const patterns = level.dashSpawnPatternSpawns.filter(pattern => {
         return bossHP >= pattern.minHP && bossHP <= pattern.maxHP
     })
 
@@ -1250,12 +1299,24 @@ function tick(instance) {
 
     effectTick(instance)
 
-    movePlayer(instance)
-    drawPlayer(instance)
-
     if (instance.level.isBossLevel) {
         bossTick(instance)
         drawBoss(instance)
+
+        if (bossRelativeHealth(instance) <= 0) {
+            return gameState.won
+        }
+    }
+
+    movePlayer(instance)
+    drawPlayer(instance)
+
+    if (instance.screenShakeHorizontalTick > 0) {
+        instance.screenShakeHorizontalTick -= 1
+    }
+
+    if (instance.screenShakeVerticalTick > 0) {
+        instance.screenShakeVerticalTick -= 1
     }
 
     scoreRewardTick(instance)
