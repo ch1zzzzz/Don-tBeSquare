@@ -17,6 +17,9 @@ function createGameInstance(level, context, startSecond = 0, hardcoreMode = fals
         screenShakeVerticalTick: 0,
         screenShakeHorizontalTick: 0,
         bossShakeTick: 0,
+        bossDyingTick: 0,
+        bossHitTick: 0,
+        bossColor: effectColorMap['shield3'],
 
         weaponUpgrades: {
             pierce: 0,
@@ -147,8 +150,10 @@ function bulletTick(instance) {
         instance.ticksSincePressedShoot = 0
 
         if (instance.bulletSpawnCooldown == 0 && instance.bulletAmmoCount >= 1) {
-            const vector = (instance.currentBulletSettings.inheritVelocity ? getPlayerVector(instance.speed) : { x: 0, y: 0 });
-            vector.x += instance.currentBulletSettings.velocity;
+            const vector = {
+                x: instance.currentBulletSettings.velocity,
+                y: getPlayerVector(instance.currentBulletSettings.velocity/2).y
+            }
             const bulletsToShoot = instance.currentBulletSettings.bulletsPerShot
 
 
@@ -188,8 +193,8 @@ function bulletTick(instance) {
         }
     }
 
-    instance.context.fillStyle = "#f0e68b"
-    instance.context.shadowColor = "#f0e68b"
+    instance.context.fillStyle = effectColorMap['upgrade']
+    instance.context.shadowColor = effectColorMap['upgrade']
     instance.context.shadowBlur = 10
 
     let bulletsToPop = []
@@ -202,6 +207,8 @@ function bulletTick(instance) {
             // Enimie Effects
             doEnimieEffects(instance, instance.enimies[collisionIndex], false)
 
+            createShrapenal(instance, bullet.x-bullet.radius/2, bullet.y-bullet.radius/2, bullet.radius, bullet.radius, 30, effectColorMap['upgrade'], 2)
+
             if (bullet.pierce) {
                 bullet.pierceFreezeTicks = 5
                 bullet.pierce -= 1
@@ -210,8 +217,14 @@ function bulletTick(instance) {
             }
         } else if (instance.level.isBossLevel) {
             if (squareCircleOverlap(instance.bossX, instance.bossY, 90, bullet.x, bullet.y, bullet.radius)) {
+                if (instance.bossDamage == 0) {
+                    instance.bossShakeTick = 40
+                }
+
                 instance.bossDamage += 1
+                instance.bossHitTick = 5
                 bulletsToPop.push(i)
+                createShrapenal(instance, bullet.x-bullet.radius/2, bullet.y-bullet.radius/2, bullet.radius, bullet.radius, 30, effectColorMap['upgrade'], 3)
             }
         }
 
@@ -277,16 +290,25 @@ function spawnEnimies(instance) {
     }
 }
 
+const bossDeathColors = [
+    '#f9115aff',
+    '#380694',
+    '#181fab',
+    '#54d7ff',
+    '#fff7f7',
+    '#fcba03'
+]
+
 const effectColorMap = {
-    hurt: '#f23342',
-    critical: '#fff7f7',
-    shield1: '#54d7ff',
-    shield2: '#181fab',
-    shield3: '#380694',
-    health: '#58de0b',
-    upgrade: '#f5f242',
-    explosive: '#fcba03',
-    'switch-weapon': '#fa5aca'
+    hurt: '#f9113fff',
+    critical: '#fff9faff',
+    shield1: '#11def9ff',
+    shield2: '#115af9ff',
+    shield3: '#4b11f9ff',
+    health: '#34f911ff',
+    upgrade: '#f5f911ff',
+    explosive: '#f99411ff',
+    'switch-weapon': '#f911f9ff'
 }
 
 function enimieTick(instance) {
@@ -352,12 +374,12 @@ function enimieTick(instance) {
 
             const splitEffect = effect.split(':')
             if (splitEffect[0] == 'switch-level') {
-                instance.context.fillStyle = '#f4efef'
-                instance.context.shadowColor = '#f4efef'
+                instance.context.fillStyle = effectColorMap['critical']
+                instance.context.shadowColor = effectColorMap['critical']
 
                 instance.context.fillRect(enimie.x - 15, enimie.y - 15, 30, 30)
 
-                instance.context.fillStyle = '#656565'
+                instance.context.fillStyle = '#303030ff'
                 instance.context.font = '30px sans-serif'
                 instance.context.fillText(splitEffect[1], enimie.x - 8, enimie.y + 10)
             } else {
@@ -438,8 +460,8 @@ function drawPlayer(instance) {
         return
     }
 
-    instance.context.fillStyle = "#9ce9b0";
-    instance.context.shadowColor = "#9ce9b0";
+    instance.context.fillStyle = effectColorMap['health']
+    instance.context.shadowColor = effectColorMap['health']
     instance.context.shadowBlur = 10;
     instance.context.beginPath();
     instance.context.moveTo(instance.xPos - 10, instance.yPos - 10);
@@ -556,6 +578,8 @@ function doEnimieEffects(instance, enimie, ranInto) {
             style: effectColorMap['shield3']
         })
 
+        createShrapenal(instance, enimie.x-15, enimie.y-15, 30, 30, 30, effectColorMap['shield3'], 2)
+
         //addScoreReward(instance, 'Break Shield', effectColorMap['shield3'], 500)
 
         enimie.effects.push('shield2')
@@ -573,6 +597,8 @@ function doEnimieEffects(instance, enimie, ranInto) {
             tick: 0,
             style: effectColorMap['shield2']
         })
+
+        createShrapenal(instance, enimie.x-15, enimie.y-15, 30, 30, 30, effectColorMap['shield2'], 2)
 
         //addScoreReward(instance, 'Break Shield', effectColorMap['shield2'], 500)
 
@@ -592,6 +618,8 @@ function doEnimieEffects(instance, enimie, ranInto) {
             style: effectColorMap['shield1']
         })
 
+        createShrapenal(instance, enimie.x-15, enimie.y-15, 30, 30, 30, effectColorMap['shield1'], 2)
+
         //addScoreReward(instance, 'Break Shield', effectColorMap['shield1'], 500)
 
         enimie.effects.push('hurt')
@@ -599,15 +627,17 @@ function doEnimieEffects(instance, enimie, ranInto) {
         return
     } else {
         if (effects.includes('hurt')) {
+            const style = (effects.includes('critical') ? effectColorMap['critical'] : effectColorMap['hurt'])
+
             instance.extraEffects.push({
                 x: enimie.x,
                 y: enimie.y,
                 type: 'enimie-death',
                 tick: 0,
-                style: (effects.includes('critical') ? effectColorMap['critical'] : effectColorMap['hurt'])
+                style
             })
 
-            //addScoreReward(instance, 'Destroy', effectColorMap['critical'], 1000)
+            createShrapenal(instance, enimie.x-15, enimie.y-15, 30, 30, 30, style, 2)
         }
 
         if (effects.includes('critical')) {
@@ -753,16 +783,13 @@ const explosionColor = {
 }
 
 function effectTick(instance) {
-    let effectsToDelete = []
     let effectsToPush = []
-    for (let i = 0; i < instance.extraEffects.length; i++) {
-        const extraEffect = instance.extraEffects[i]
+    instance.extraEffects = instance.extraEffects.filter(extraEffect => {
         extraEffect.tick += 1
 
         if (extraEffect.type == 'explosion') {
             if (extraEffect.tick >= 9) {
-                effectsToDelete.push(i)
-                continue
+                return false
             }
 
             const scale = Math.floor(extraEffect.tick / 3) + 1
@@ -788,8 +815,7 @@ function effectTick(instance) {
 
         if (extraEffect.type == 'switch-level') {
             if (extraEffect.tick >= 30) {
-                effectsToDelete.push(i)
-                continue
+                return false
             }
 
             if (extraEffect.tick > 20) {
@@ -817,13 +843,12 @@ function effectTick(instance) {
 
         if (extraEffect.type == 'critical-explosion') {
             if (extraEffect.tick > 10) {
-                effectsToDelete.push(i)
                 effectsToPush.push({
                     type: 'lightning',
                     x: instance.xPos + getPlayerVector(instance.speed).x * 10,
                     tick: 0
                 })
-                continue
+                return false
             }
 
             const radius = (9 * extraEffect.tick)
@@ -836,8 +861,7 @@ function effectTick(instance) {
 
         if (extraEffect.type == 'lightning') {
             if (extraEffect.tick > 14) {
-                effectsToDelete.push(i)
-                continue
+                return false
             }
 
             if (extraEffect.tick == 7 && instance.immunityFrames <= 0) {
@@ -864,12 +888,11 @@ function effectTick(instance) {
 
         if (extraEffect.type == 'enimie-death') {
             if (extraEffect.tick > 10) {
-                effectsToDelete.push(i)
-                continue
+                return false
             }
 
             instance.context.fillStyle = extraEffect.style
-            instance.context.globalAlpha = (10 - extraEffect.tick) / 10
+            instance.context.globalAlpha = (15 - extraEffect.tick) / 10
 
             const outsideOffset = extraEffect.tick
 
@@ -883,12 +906,11 @@ function effectTick(instance) {
 
         if (extraEffect.type == 'shield-break') {
             if (extraEffect.tick > 10) {
-                effectsToDelete.push(i)
-                continue
+                return false
             }
 
             instance.context.fillStyle = extraEffect.style
-            instance.context.globalAlpha = (10 - extraEffect.tick) / 10
+            instance.context.globalAlpha = (15 - extraEffect.tick) / 10
 
             instance.context.fillRect(extraEffect.x - 15 - extraEffect.tick, extraEffect.y - 15 - extraEffect.tick, 30 + extraEffect.tick * 2, 30 + extraEffect.tick * 2)
 
@@ -897,22 +919,50 @@ function effectTick(instance) {
 
         if (extraEffect.type == 'text') {
             if (extraEffect.tick >= 15) {
-                effectsToDelete.push(i)
-                continue
+                return false
             }
 
             instance.context.fillStyle = extraEffect.style
             instance.context.font = '20px sans-serif'
             instance.context.fillText(extraEffect.text, extraEffect.x, extraEffect.y - extraEffect.tick)
         }
-    }
 
-    for (let i = 0; i < effectsToDelete.length; i++) {
-        instance.extraEffects.splice(i, 1)
-    }
+        if (extraEffect.type == 'shrapenal') {
+            if (extraEffect.y >= 450) {
+                return false
+            }
+
+            extraEffect.x += extraEffect.velX
+            extraEffect.y += extraEffect.velY
+            extraEffect.velY += 1
+
+            instance.context.fillStyle = extraEffect.style
+            instance.context.globalAlpha = (15 - extraEffect.tick) / 10
+            instance.context.beginPath()
+            instance.context.arc(extraEffect.x, extraEffect.y, 2, 0, 2 * Math.PI)
+            instance.context.fill()
+            instance.context.globalAlpha = 1.0
+        }
+
+        return true
+    })
 
     for (let i = 0; i < effectsToPush.length; i++) {
         instance.extraEffects.push(effectsToPush[i])
+    }
+}
+
+function createShrapenal(instance, x, y, w, h, vel, style, number) {
+    for (let i = 0; i < number; i++) {
+        instance.extraEffects.push({
+            tick: 0,
+            type: 'shrapenal',
+            x: range(x, x+w),
+            y: range(y, y+h),
+            velX: range(-vel, vel),
+            velY: range(-vel, vel),
+            style
+        })
     }
 }
 
@@ -987,7 +1037,7 @@ function drawTutorial(instance) {
 function bossRelativeHealth(instance) {
     const bossHealth = instance.level.bossHP - instance.bossDamage
 
-    return bossHealth/instance.level.bossHP
+    return bossHealth / instance.level.bossHP
 }
 
 const BOSS_ATTACK_IDLE = 0
@@ -1001,6 +1051,8 @@ const BOSS_ATTACK_RECOIL = 7
 
 function getBossActivity(instance) {
     if (instance.bossAttackStamina <= 0) {
+        instance.bossShakeTick = 70
+
         return {
             name: BOSS_ATTACK_IDLE,
             tick: 0
@@ -1037,7 +1089,7 @@ function moveBossTowardsPoint(instance, x, y, speed) {
     const diffX = x - instance.bossX
     const diffY = y - instance.bossY
 
-    const dist = Math.sqrt(diffX*diffX + diffY*diffY)
+    const dist = Math.sqrt(diffX * diffX + diffY * diffY)
 
     if (dist < speed) {
         instance.bossX = x
@@ -1134,7 +1186,7 @@ function bossBounceOfWalls(instance) {
 
 function pickRandomShootPattern(level, hp) {
     const bossHP = hp * level.bossHP
-    
+
     const patterns = level.shootSpawns.filter(pattern => {
         return bossHP >= pattern.minHP && bossHP <= pattern.maxHP
     })
@@ -1148,7 +1200,7 @@ function pickRandomShootPattern(level, hp) {
 
 function pickRandomDashAwakeSpawner(level, hp) {
     const bossHP = hp * level.bossHP
-    
+
     const patterns = level.dashSpawnPatternSpawns.filter(pattern => {
         return bossHP >= pattern.minHP && bossHP <= pattern.maxHP
     })
@@ -1170,7 +1222,7 @@ function bossTick(instance) {
             activity.tick += 1
 
             if (activity.tick > 100) {
-                instance.bossAttackStamina = range(2, 2+(1-hp)*4)
+                instance.bossAttackStamina = range(2, 2 + (1 - hp) * 4)
                 switchBossActivity(instance)
             }
         }
@@ -1237,7 +1289,7 @@ function bossTick(instance) {
             switchBossActivity(instance)
             return
         }
-        
+
         if (activity.pattern.moveWhileShooting) {
             moveBossTowardsPoint(instance, 550, instance.yPos, 7)
         }
@@ -1251,9 +1303,9 @@ function bossTick(instance) {
             }
 
             instance.enimies.push(spawnEnimie(instance.bossX, instance.bossY, activity.pattern.enimie))
-            
+
             activity.shot += 1
-            activity.cooldown = tps/activity.pattern.spawnsPerSecond
+            activity.cooldown = tps / activity.pattern.spawnsPerSecond
         }
     } else {
         instance.bossAttackStamina += 1
@@ -1262,7 +1314,11 @@ function bossTick(instance) {
 }
 
 function drawBoss(instance) {
-    const bossColor = effectColorMap['shield3']
+    if (instance.bossHitTick > 0) {
+        instance.bossHitTick -= 1
+    }
+
+    const bossColor = instance.bossHitTick > 0 ? effectColorMap['shield1'] : effectColorMap['shield3']
 
     const barColor = effectColorMap['shield1']
 
@@ -1270,17 +1326,70 @@ function drawBoss(instance) {
     instance.context.shadowColor = bossColor
     instance.context.shadowBlur = 15
 
-    instance.context.fillRect(instance.bossX - 30, instance.bossY - 30, 60, 60)
+    if (instance.bossShakeTick > 0) {
+        instance.bossShakeTick -= 1
+    }
+
+    const shakeOffset = instance.bossShakeTick == 0 ? 0 : 5 * Math.sin(instance.bossShakeTick / 2)
+
+    instance.context.fillRect(instance.bossX - 30 + shakeOffset, instance.bossY - 30, 60, 60)
 
     instance.context.fillStyle = barColor
     instance.context.shadowColor = barColor
     instance.context.shadowBlur = 10
 
-    const bossHealth = instance.level.bossHP - instance.bossDamage
-
-    instance.context.fillRect(20, 420, 560*bossRelativeHealth(instance), 20)
+    instance.context.fillRect(20, 420, 560 * bossRelativeHealth(instance), 20)
 
     instance.context.shadowBlur = 0
+}
+
+function animateBossDeath(instance) {
+    instance.bossDyingTick += 1
+
+    instance.health = 100
+
+    if (instance.bossDyingTick < 150) {
+        const shakeOffset = 5 * Math.sin(instance.bossDyingTick / 2)
+
+        if (instance.bossDyingTick > 50) {
+            if (instance.bossDyingTick % 20 == 0 || (instance.bossDyingTick > 100 && instance.bossDyingTick % 10 == 0)) {
+                instance.bossColor = pickRandomArrayElement(bossDeathColors.filter(color => {
+                    return color != instance.bossColor
+                }))
+            }
+        }
+
+        const bossColor = instance.bossColor
+
+        instance.context.fillStyle = bossColor
+        instance.context.shadowColor = bossColor
+        instance.context.shadowBlur = 15
+
+        instance.context.fillRect(instance.bossX - 30 + shakeOffset, instance.bossY - 30, 60, 60)
+    } else {
+        if (instance.bossDyingTick > 300) {
+            return true
+        }
+
+        if (instance.bossDyingTick == 150) {
+            instance.extraEffects.push({
+                type: 'critical-explosion',
+                x: instance.bossX,
+                y: instance.bossY,
+                tick: 0
+            })
+        }
+    }
+
+    return false
+}
+
+function drawUI(instance) {
+    context.fillStyle = effectColorMap['health']
+    context.fillRect(10, 10, instance.health, 10)
+
+    context.fillStyle = effectColorMap['upgrade']
+    context.fillRect(120, 10, Math.min(Math.floor(instance.bulletAmmoCount) * 100 / instance.currentBulletSettings.maxAmmo, 100), 10)
 }
 
 function tick(instance) {
@@ -1300,11 +1409,13 @@ function tick(instance) {
     effectTick(instance)
 
     if (instance.level.isBossLevel) {
-        bossTick(instance)
-        drawBoss(instance)
-
         if (bossRelativeHealth(instance) <= 0) {
-            return gameState.won
+            if (animateBossDeath(instance)) {
+                return gameState.won
+            }
+        } else {
+            bossTick(instance)
+            drawBoss(instance)
         }
     }
 

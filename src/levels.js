@@ -2812,13 +2812,7 @@ function bossLevel() {
     return {
         isBossLevel: true,
         bossHP: 100,
-        // Boss Death Animation
-        // Player Death Animation
-        // On hit red effect
-        // Sound effects
-        // Boss Idle Animation
-        // Boss Wakeup Animation
-        // Sprites Probieren
+        // Impact Frames
         dashSpawnPatternSpawns: [
             normalLeft,
             normalRight,

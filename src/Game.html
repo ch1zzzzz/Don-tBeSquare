@@ -60,15 +60,7 @@
             context.fillStyle = "#1d201e"
             context.fillRect(0, 0, 600, 450)
         }
-
-        function drawUI(instance) {
-            context.fillStyle = '#84f777'
-            context.fillRect(10, 10, instance.health, 10)
-
-            context.fillStyle = '#f5f187'
-            context.fillRect(120, 10, Math.min(Math.floor(instance.bulletAmmoCount) * 100 / instance.currentBulletSettings.maxAmmo, 100), 10)
-        }
-
+        
         function displayText() {
             scoreText.textContent = Math.floor(tickCounter / tps) + "s"
         }
