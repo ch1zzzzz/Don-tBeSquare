@@ -232,7 +232,7 @@ function bulletTick(instance) {
                     instance.bossShakeTick = 40
                 }
 
-                instance.bossDamage += 10
+                instance.bossDamage += 1
                 instance.bossHitTick = 5
                 bulletsToPop.push(i)
                 createShrapenal(instance, bullet.x - bullet.radius / 2, bullet.y - bullet.radius / 2, bullet.radius, bullet.radius, 30, effectColorMap['upgrade'], 3)

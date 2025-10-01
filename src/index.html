@@ -179,6 +179,7 @@
             if (newLevel) {
                 clearInterval(interval)
                 currentLevelName = name
+                levelLabel.textContent = names
                 currentGameState = 0
                 highScore = localStorage.getItem("Score: " + currentLevelName)
 
@@ -205,8 +206,8 @@
                 }
 
                 if (currentGameState < 0) {
-                    levelLabel.textContent = "Level " + currentLevelName
                     loadLevel(currentLevelName)
+                    levelLabel.textContent = "Level " + currentLevelName
                 }
             }
 
