@@ -2,39 +2,32 @@
 <html>
 <body>
 
-<audio id="myAudio" src="audio/Ring-Ring.mp3"></audio>
-
 <p>Click the buttons to play or pause the audio.</p>
 
-<button onclick="playAudio()" type="button">Play Audio</button>
-<button onclick="pauseAudio()" type="button">Pause Audio Negative</button> 
+<audio src="audio/BounceSong.mp3"></audio>
+
+<button onclick="playA()" type="button">Button A</button>
+<button onclick="playB()" type="button">Button B</button> 
 
 <script>
-const x = document.getElementById("myAudio");
-
 const audioContext = new AudioContext()
 
-const xTrack = audioContext.createMediaElementSource(x)
 
-const gain = audioContext.createGain()
+const audioFileSources = {
+    'bounce-song': 'audio/BounceSong.mp3'
+}
 
-xTrack.connect(audioContext.destination)
+audioContext.createStereoPanner
 
-function playAudio() {
-    if (audioContext.state === 'suspended') {
-        audioContext.resume()
-    }
+const audioLibrary = loadSamplesFromSources(audioContext, audioFileSources)
 
-    gain.gain.value = 1.0
-    x.play()
+function playA() {
+    playSampleFromLibrary(audioContext, audioLibrary, 'bounce-song')
+}
 
-    console.log('playing audio')
-} 
-
-function pauseAudio() { 
-    gain.gain.value = -1.0
-    x.play()
-} 
+function playB() {
+    clearInterval(interval)
+}
 </script>
 
 </body>

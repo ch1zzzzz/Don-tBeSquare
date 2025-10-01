@@ -5,6 +5,7 @@ const S = 83;
 const D = 68;
 const J = 74;
 const SPACE = 32;
+const ESC = 27;
 
 let pressedKeys = {};
 window.addEventListener('keyup', function (e) {
@@ -36,6 +37,10 @@ function getPlayerVector(speed) {
         x: vector_x * speed,
         y: vector_y * speed
     }
+}
+
+function tryingToExcape() {
+    return pressedKeys[ESC]
 }
 
 function isPlayerShooting() {

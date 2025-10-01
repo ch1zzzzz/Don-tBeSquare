@@ -1,4 +1,4 @@
-function createGameInstance(level, context, startSecond = 0, hardcoreMode = false) {
+function createGameInstance(level, context, audioSystem, startSecond = 0, hardcoreMode = false) {
     return {
         tickCounter: startSecond * tps,
         xPos: 150,
@@ -55,8 +55,15 @@ function createGameInstance(level, context, startSecond = 0, hardcoreMode = fals
         stars: createTheStars(),
 
         scoreRewards: [],
-        score: 0
+        score: 0,
+
+        audioSystem,
+        backgroundSong: null
     }
+}
+
+function playPreset(instance, name, xOrigin = false) {
+    return playPresetFromSystem(instance.audioSystem, name, xOrigin ? { pan: Math.min(650, Math.max(0, (xOrigin - 325) / 325)) } : {})
 }
 
 function createTheStars() {
@@ -152,10 +159,9 @@ function bulletTick(instance) {
         if (instance.bulletSpawnCooldown == 0 && instance.bulletAmmoCount >= 1) {
             const vector = {
                 x: instance.currentBulletSettings.velocity,
-                y: getPlayerVector(instance.currentBulletSettings.velocity/2).y
+                y: getPlayerVector(instance.currentBulletSettings.velocity / 2).y
             }
             const bulletsToShoot = instance.currentBulletSettings.bulletsPerShot
-
 
             if (bulletsToShoot == 0) {
                 console.log("No Bullets Per Shot")
@@ -170,6 +176,8 @@ function bulletTick(instance) {
                         radius: instance.currentBulletSettings.radius
                     }
                 )
+
+                playPreset(instance, 'shot', instance.xPos)
             } else {
                 const degStep = instance.currentBulletSettings.spread / (bulletsToShoot - 1)
                 const offset = -instance.currentBulletSettings.spread / 2
@@ -185,6 +193,8 @@ function bulletTick(instance) {
                             radius: instance.currentBulletSettings.radius
                         }
                     )
+
+                    playPreset(instance, 'shot', instance.xPos)
                 }
             }
 
@@ -206,8 +216,9 @@ function bulletTick(instance) {
         if (collisionIndex >= 0) {
             // Enimie Effects
             doEnimieEffects(instance, instance.enimies[collisionIndex], false)
+            playPreset(instance, 'enimie-hit', bullet.x)
 
-            createShrapenal(instance, bullet.x-bullet.radius/2, bullet.y-bullet.radius/2, bullet.radius, bullet.radius, 30, effectColorMap['upgrade'], 2)
+            createShrapenal(instance, bullet.x - bullet.radius / 2, bullet.y - bullet.radius / 2, bullet.radius, bullet.radius, 30, effectColorMap['upgrade'], 2)
 
             if (bullet.pierce) {
                 bullet.pierceFreezeTicks = 5
@@ -224,7 +235,7 @@ function bulletTick(instance) {
                 instance.bossDamage += 10
                 instance.bossHitTick = 5
                 bulletsToPop.push(i)
-                createShrapenal(instance, bullet.x-bullet.radius/2, bullet.y-bullet.radius/2, bullet.radius, bullet.radius, 30, effectColorMap['upgrade'], 3)
+                createShrapenal(instance, bullet.x - bullet.radius / 2, bullet.y - bullet.radius / 2, bullet.radius, bullet.radius, 30, effectColorMap['upgrade'], 3)
             }
         }
 
@@ -418,6 +429,7 @@ function enimieTick(instance) {
                     y: enimie.y,
                     tick: 0
                 })
+                playPreset(instance, 'criticalExplode', enimie.x)
             }
 
             return false
@@ -533,8 +545,7 @@ function collisions(instance) {
             vIntersectsPlayer(instance, instance.bossX - 30, instance.bossY - 30, instance.bossY + 30) ||
             vIntersectsPlayer(instance, instance.bossX + 30, instance.bossY - 30, instance.bossY + 30)
         ) {
-            instance.health -= 50
-            instance.immunityFrames = 50
+            hitPlayer(instance, 50)
         }
     }
 }
@@ -560,9 +571,7 @@ function doEnimieEffects(instance, enimie, ranInto) {
     const effects = enimie.effects
 
     if (ranInto && (effects.includes('hurt') || effects.includes('explosive') || effects.includes('shield1') || effects.includes('shield2') || effects.includes('shield3'))) {
-        instance.health -= (instance.hardcoreMode ? 1000 : 30)
-        instance.immunityFrames = 40
-        addScoreReward(instance, 'Hurt', effectColorMap['hurt'], -5000)
+        hitPlayer(instance, 40)
     }
 
     if (effects.includes('shield3')) {
@@ -578,7 +587,7 @@ function doEnimieEffects(instance, enimie, ranInto) {
             style: effectColorMap['shield3']
         })
 
-        createShrapenal(instance, enimie.x-15, enimie.y-15, 30, 30, 30, effectColorMap['shield3'], 2)
+        createShrapenal(instance, enimie.x - 15, enimie.y - 15, 30, 30, 30, effectColorMap['shield3'], 2)
 
         //addScoreReward(instance, 'Break Shield', effectColorMap['shield3'], 500)
 
@@ -598,7 +607,7 @@ function doEnimieEffects(instance, enimie, ranInto) {
             style: effectColorMap['shield2']
         })
 
-        createShrapenal(instance, enimie.x-15, enimie.y-15, 30, 30, 30, effectColorMap['shield2'], 2)
+        createShrapenal(instance, enimie.x - 15, enimie.y - 15, 30, 30, 30, effectColorMap['shield2'], 2)
 
         //addScoreReward(instance, 'Break Shield', effectColorMap['shield2'], 500)
 
@@ -618,7 +627,7 @@ function doEnimieEffects(instance, enimie, ranInto) {
             style: effectColorMap['shield1']
         })
 
-        createShrapenal(instance, enimie.x-15, enimie.y-15, 30, 30, 30, effectColorMap['shield1'], 2)
+        createShrapenal(instance, enimie.x - 15, enimie.y - 15, 30, 30, 30, effectColorMap['shield1'], 2)
 
         //addScoreReward(instance, 'Break Shield', effectColorMap['shield1'], 500)
 
@@ -637,7 +646,7 @@ function doEnimieEffects(instance, enimie, ranInto) {
                 style
             })
 
-            createShrapenal(instance, enimie.x-15, enimie.y-15, 30, 30, 30, style, 2)
+            createShrapenal(instance, enimie.x - 15, enimie.y - 15, 30, 30, 30, style, 2)
         }
 
         if (effects.includes('critical')) {
@@ -651,6 +660,10 @@ function doEnimieEffects(instance, enimie, ranInto) {
     if (effects.includes('health')) {
         if (instance.health >= 100) {
             addScoreReward(instance, 'Not Needed', effectColorMap['health'], 5000)
+
+            playPreset(instance, 'healthNotNeeded', enimie.x)
+        } else {
+            playPreset(instance, 'healthGain', enimie.x)
         }
 
         instance.health += 25
@@ -690,12 +703,16 @@ function doEnimieEffects(instance, enimie, ranInto) {
         })
 
         addScoreReward(instance, 'Explosion', effectColorMap['explosive'], 1000)
+
+        playPreset(instance, 'thunder', enimie.x)
     }
 
     if (effects.includes('switch-weapon') && enimie.x < 600) {
         instance.currentBaseBulletSettings = getRandomBulletSettings()
         instance.currentBulletSettings = getUpgradedBulletSettings(instance.currentBaseBulletSettings, instance.weaponUpgrades)
         instance.bulletAmmoCount = instance.currentBulletSettings.maxAmmo
+
+        playPreset(instance, 'switchWeapon', enimie.x)
 
         instance.extraEffects.push({
             x: enimie.x - 20,
@@ -843,11 +860,13 @@ function effectTick(instance) {
 
         if (extraEffect.type == 'critical-explosion') {
             if (extraEffect.tick > 10) {
+                const lightningX = instance.xPos + getPlayerVector(instance.speed).x * 10
                 effectsToPush.push({
                     type: 'lightning',
-                    x: instance.xPos + getPlayerVector(instance.speed).x * 10,
+                    x: lightningX,
                     tick: 0
                 })
+                playPreset(instance, 'criticalLightning', lightningX)
                 return false
             }
 
@@ -866,10 +885,7 @@ function effectTick(instance) {
 
             if (extraEffect.tick == 7 && instance.immunityFrames <= 0) {
                 if (Math.abs(instance.xPos - extraEffect.x) <= 15) {
-                    instance.health -= 50
-                    instance.immunityFrames = 50
-
-                    addScoreReward(instance, 'Hurt', effectColorMap['hurt'], -5000)
+                    hitPlayer(instance, 50)
                 } else {
                     addScoreReward(instance, 'Doge Lightning', effectColorMap['upgrade'], 5000)
                 }
@@ -952,13 +968,23 @@ function effectTick(instance) {
     }
 }
 
+function hitPlayer(instance, damage) {
+    instance.health -= damage
+    instance.immunityFrames = 50
+    addScoreReward(instance, 'Hurt', effectColorMap['hurt'], -5000)
+
+    if (instance.health >= 0) {
+        playPreset(instance, 'hurt', instance.xPos)
+    }
+}
+
 function createShrapenal(instance, x, y, w, h, vel, style, number) {
     for (let i = 0; i < number; i++) {
         instance.extraEffects.push({
             tick: 0,
             type: 'shrapenal',
-            x: range(x, x+w),
-            y: range(y, y+h),
+            x: range(x, x + w),
+            y: range(y, y + h),
             velX: range(-vel, vel),
             velY: range(-vel, vel),
             style
@@ -980,6 +1006,10 @@ function addScoreReward(instance, reason, style, reward) {
     })
 
     instance.score += reward
+
+    if (reward > 0) {
+        playPreset(instance, 'score')
+    }
 }
 
 function scoreRewardTick(instance) {
@@ -1139,6 +1169,8 @@ function bossBounceOfWalls(instance) {
         spawnBounceAlerted(instance)
 
         instance.screenShakeHorizontalTick = 20
+
+        playPreset(instance, 'bossBounce', instance.bossX)
     }
 
     if (instance.bossX > 600) {
@@ -1153,6 +1185,8 @@ function bossBounceOfWalls(instance) {
         spawnBounceAlerted(instance)
 
         instance.screenShakeHorizontalTick = 20
+
+        playPreset(instance, 'bossBounce', instance.bossX)
     }
 
     if (instance.bossY < 0) {
@@ -1167,6 +1201,8 @@ function bossBounceOfWalls(instance) {
         spawnBounceAlerted(instance)
 
         instance.screenShakeVerticalTick = 20
+
+        playPreset(instance, 'bossBounce', instance.bossX)
     }
 
     if (instance.bossY > 450) {
@@ -1181,6 +1217,8 @@ function bossBounceOfWalls(instance) {
         spawnBounceAlerted(instance)
 
         instance.screenShakeVerticalTick = 20
+
+        playPreset(instance, 'bossBounce', instance.bossX)
     }
 }
 
@@ -1378,6 +1416,7 @@ function animateBossDeath(instance) {
                 y: instance.bossY,
                 tick: 0
             })
+            playPreset(instance, 'criticalExplode', instance.bossX)
         }
     }
 
@@ -1411,6 +1450,9 @@ function tick(instance) {
     if (instance.level.isBossLevel) {
         if (bossRelativeHealth(instance) <= 0) {
             if (animateBossDeath(instance)) {
+                if (instance.backgroundSong) {
+                    instance.backgroundSong.stop(0)
+                }
                 return gameState.won
             }
         } else {
@@ -1440,16 +1482,28 @@ function tick(instance) {
         instance.health = 100
     }
 
-    if (instance.health <= 0) {
+    if (instance.health <= 0 || (tryingToExcape() && !instance.level.isTutorial)) {
+        playPreset(instance, 'gameOver')
+        if (instance.backgroundSong) {
+            instance.backgroundSong.stop(0)
+        }
         return gameState.lost
     }
 
     if (instance.tickCounter >= instance.level.endSeconds * tps) {
+        playPreset(instance, 'victory')
+        if (instance.backgroundSong) {
+            instance.backgroundSong.stop(0)
+        }
         return gameState.won
     }
 
     instance.tickCounter += 1
     instance.immunityFrames -= 1
+
+    if (instance.tickCounter == 10) {
+        instance.backgroundSong = playPreset(instance, instance.level.song)
+    }
 
     return gameState.ongoing
 }

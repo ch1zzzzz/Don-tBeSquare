@@ -83,3 +83,25 @@ function isBetween(n, min, max) {
 function sliceIntersect(a_min, a_max, b_min, b_max) {
     return isBetween(a_min, b_min, b_max) || isBetween(a_max, b_min, b_max) || isBetween(b_min, a_min, a_max)
 }
+
+// combines elements of two objects. If both objects have element, it takes the one from ob1
+function combineObjects(ob1, ob2) {
+    let obj = {}
+
+    const keys1 = Object.keys(ob1)
+    const keys2 = Object.keys(ob2)
+
+    for(let i = 0; i < keys2.length; i++) {
+        const key = keys2[i]
+
+        obj[key] = ob2[key]
+    }
+
+    for (let i = 0; i < keys1.length; i++) {
+        const key = keys1[i]
+
+        obj[key] = ob1[key]
+    }
+
+    return obj
+}

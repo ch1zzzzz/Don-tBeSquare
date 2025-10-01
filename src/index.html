@@ -41,6 +41,8 @@
     <script src="spawnFunctions.js"></script>
     <script src="bullets.js"></script>
     <script src="input.js"></script>
+    <script src="audio.js"></script>
+    <script src="gameAudio.js"></script>
     <script src="gameLogic.js"></script>
     <script>
         const canvas = document.getElementById('screen')
@@ -55,6 +57,8 @@
         const levelLabel = document.getElementById('levelLabel')
         const timeLabel = document.getElementById('timeLabel')
         const scoreLabel = document.getElementById('scoreLabel')
+
+        const audioSystem = initGameAudioSystem()
 
         function clearScreen(instance) {
             context.fillStyle = "#1d201e"
@@ -78,7 +82,7 @@
 
             const startTime = performance.now()
 
-            const game = createGameInstance(level, context, 0, false)
+            const game = createGameInstance(level, context, audioSystem, 0, false)
 
             let ticksExecuted = 0
 
@@ -206,7 +210,7 @@
                 }
             }
 
-            if (e.keyCode == 27) {
+            if (e.keyCode == 27 && currentGameState != 0) {
                 levelLabel.textContent = "Menue"
                 currentLevelName = "Menue"
                 clearInterval(interval)

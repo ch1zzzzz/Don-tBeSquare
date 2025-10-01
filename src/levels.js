@@ -32,6 +32,7 @@ function setLevelBeat(level) {
 
 function levelSelectLevel() {
     return {
+        song: 'criticalExplode',
         imortal: true,
         isTutorial: true,
         oneTimeSpawns: {
@@ -191,6 +192,7 @@ function levelSelectLevel() {
 
 function level1() {
     return {
+        song: 'bounceSong',
         0: [
             {
                 spawnFunction: 'random',
@@ -280,7 +282,7 @@ function level1() {
             }
         ],
         20: [],
-        25: [
+        22: [
             {
                 spawnFunction: 'verticalLine',
                 spawnData: {
@@ -311,7 +313,7 @@ function level1() {
                 spawnsPerSecond: 0.75
             }
         ],
-        35: [
+        32: [
             {
                 spawnFunction: 'verticalLine',
                 spawnData: {
@@ -333,7 +335,7 @@ function level1() {
                 spawnsPerSecond: 0.75
             }
         ],
-        38: [
+        35: [
             {
                 spawnFunction: 'verticalLine',
                 spawnData: {
@@ -376,7 +378,7 @@ function level1() {
                 spawnsPerSecond: 0.5
             }
         ],
-        45: [
+        42: [
             {
                 spawnFunction: 'verticalLine',
                 spawnData: {
@@ -439,8 +441,8 @@ function level1() {
                 spawnsPerSecond: 0.5
             }
         ],
-        55: [],
-        60: [
+        52: [],
+        54: [
             {
                 spawnFunction: 'random',
                 spawnData: {
@@ -484,7 +486,7 @@ function level1() {
                 spawnsPerSecond: 0.2
             }
         ],
-        70: [
+        64: [
             {
                 spawnFunction: 'random',
                 spawnData: {
@@ -528,7 +530,7 @@ function level1() {
                 spawnsPerSecond: 0.2
             }
         ],
-        80: [
+        74: [
             {
                 spawnFunction: 'random',
                 spawnData: {
@@ -551,13 +553,14 @@ function level1() {
                 spawnsPerSecond: 10
             }
         ],
-        90: [],
-        endSeconds: 95
+        84: [],
+        endSeconds: 87
     }
 }
 
 function weaponSwitchIntroLevel() {
     return {
+        song: 'bounceSong',
         0: [
             {
                 spawnFunction: 'random',
@@ -784,6 +787,7 @@ function weaponSwitchIntroLevel() {
 
 function bombIntroLevel() {
     return {
+        song: 'bounceSong',
         0: [
             {
                 spawnFunction: 'verticalLine',
@@ -1151,6 +1155,7 @@ function bombIntroLevel() {
 
 function barrierIntroLevelOld() {
     return {
+        song: 'bounceSong',
         0: [
             {
                 spawnFunction: 'verticalLine',
@@ -1407,6 +1412,7 @@ function barrierIntroLevelOld() {
 
 function barrierIntroLevel() {
     return {
+        song: 'bounceSong',
         0: [
             {
                 spawnFunction: 'random',
@@ -1744,6 +1750,7 @@ function barrierIntroLevel() {
 
 function upgradeIntroLevel() {
     return {
+        song: 'bounceSong',
         0: [
             {
                 spawnFunction: 'random',
@@ -2216,6 +2223,7 @@ function waveMadnessLevel() {
     }
 
     return {
+        song: 'bounceSong',
         0: [
             weirdWavePattern
         ],
@@ -2429,7 +2437,7 @@ function spawnPatterns() {
     }
 
     return {
-        // TODO make one time spawns work
+        song: 'bounceSong',
         oneTimeSpawns: {
             15: [
                 {
@@ -2810,9 +2818,17 @@ function bossLevel() {
     }
 
     return {
+        song: 'bounceSong',
         isBossLevel: true,
         bossHP: 100,
-        // Impact Frames
+        // Cleanup
+
+        // Fix Wrong Level Name Bug
+        // Fix Explosive Chain Reaction
+
+        // End Screen Highscore
+        // Menue Better Placement
+        // Explosion More Effect
         dashSpawnPatternSpawns: [
             normalLeft,
             normalRight,
