@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<audio id="myAudio" src="audio/Ring-Ring.mp3"></audio>
+
+<p>Click the buttons to play or pause the audio.</p>
+
+<button onclick="playAudio()" type="button">Play Audio</button>
+<button onclick="pauseAudio()" type="button">Pause Audio Negative</button> 
+
+<script>
+const x = document.getElementById("myAudio");
+
+const audioContext = new AudioContext()
+
+const xTrack = audioContext.createMediaElementSource(x)
+
+const gain = audioContext.createGain()
+
+xTrack.connect(audioContext.destination)
+
+function playAudio() {
+    if (audioContext.state === 'suspended') {
+        audioContext.resume()
+    }
+
+    gain.gain.value = 1.0
+    x.play()
+
+    console.log('playing audio')
+} 
+
+function pauseAudio() { 
+    gain.gain.value = -1.0
+    x.play()
+} 
+</script>
+
+</body>
+</html>
