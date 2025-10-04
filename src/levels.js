@@ -192,7 +192,7 @@ function levelSelectLevel() {
 
 function level1() {
     return {
-        song: 'bounceSong',
+        song: 'criticalExplode',
         0: [
             {
                 spawnFunction: 'random',
@@ -560,7 +560,7 @@ function level1() {
 
 function weaponSwitchIntroLevel() {
     return {
-        song: 'bounceSong',
+        song: 'criticalExplode',
         0: [
             {
                 spawnFunction: 'random',
@@ -787,7 +787,7 @@ function weaponSwitchIntroLevel() {
 
 function bombIntroLevel() {
     return {
-        song: 'bounceSong',
+        song: 'criticalExplode',
         0: [
             {
                 spawnFunction: 'verticalLine',
@@ -1155,7 +1155,7 @@ function bombIntroLevel() {
 
 function barrierIntroLevelOld() {
     return {
-        song: 'bounceSong',
+        song: 'criticalExplode',
         0: [
             {
                 spawnFunction: 'verticalLine',
@@ -1412,7 +1412,7 @@ function barrierIntroLevelOld() {
 
 function barrierIntroLevel() {
     return {
-        song: 'bounceSong',
+        song: 'criticalExplode',
         0: [
             {
                 spawnFunction: 'random',
@@ -1750,7 +1750,7 @@ function barrierIntroLevel() {
 
 function upgradeIntroLevel() {
     return {
-        song: 'bounceSong',
+        song: 'criticalExplode',
         0: [
             {
                 spawnFunction: 'random',
@@ -2223,7 +2223,7 @@ function waveMadnessLevel() {
     }
 
     return {
-        song: 'bounceSong',
+        song: 'criticalExplode',
         0: [
             weirdWavePattern
         ],
@@ -2437,7 +2437,7 @@ function spawnPatterns() {
     }
 
     return {
-        song: 'bounceSong',
+        song: 'criticalExplode',
         oneTimeSpawns: {
             15: [
                 {
@@ -2818,7 +2818,7 @@ function bossLevel() {
     }
 
     return {
-        song: 'bounceSong',
+        song: 'criticalExplode',
         isBossLevel: true,
         bossHP: 100,
         // Cleanup
